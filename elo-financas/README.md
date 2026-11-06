@@ -12,6 +12,16 @@ As escritas exigem origem igual à do Site e o cabeçalho de aplicação. Config
 
 A identidade usa a logo N fornecida pelo usuário, extraída com transparência via image_gen, Sora e Inter hospedadas no próprio Worker, e cores grafite, azul, roxo e turquesa. Licenças em `assets/licenses/`. A revisão visual em navegador não está disponível neste ambiente; não há aprovação visual renderizada.
 
+## Categorias automáticas
+
+Na importação Openi ou Meu Pluggy, o RaiNexa usa a categoria específica informada pelo provedor, o código de atividade do estabelecimento (MCC), quando disponível, e regras locais sobre descrição/nome do estabelecimento. Não há consulta adicional a serviços de IA nem custo de classificação por transação. Categorias genéricas do banco são refinadas quando a descrição identifica a despesa.
+
+Categorias de despesa: Moradia, Supermercado, Alimentação, Energia, Água, Internet e telefone, Transporte, Lazer, Saúde, Educação, Compras e Outros. Salário, Renda extra e Transferências continuam disponíveis. As categorias anteriores são preservadas: Alimentação não é renomeada nem tem seus limites antigos redistribuídos automaticamente.
+
+Em novos lançamentos manuais, a opção **Automática (pela descrição)** classifica no momento de salvar. Em lançamentos bancários a classificação ocorre na importação. Um Pix para uma pessoa ou um intermediador de pagamento, sem finalidade identificável, fica em **Outros**; não é marcado como transferência interna apenas por ser Pix. O painel sinaliza categorias bancárias em Outros para revisão.
+
+Para corrigir, abra Lançamentos e edite a categoria. A sincronização seguinte preserva o ajuste desse lançamento e não recria registros excluídos. A correção não ensina uma regra para todos os lançamentos futuros do mesmo estabelecimento. Os saldos e movimentações reais continuam dependendo da configuração da Openi e do consentimento no banco.
+
 ## Conexão iniciada pelo RaiNexa: Openi
 
 A integração padrão agora usa o Connect hospedado da Openi. A página oficial de preços anuncia um plano pessoal de R$ 0/mês, cinco consentimentos do mesmo titular e uma atualização diária. Não confundir esse plano com o teste de 14 dias dos planos comerciais. A habilitação, o faturamento e a cobertura da conta são controlados pelo provedor; o RaiNexa não consegue confirmar o plano pela API documentada e não contrata assinaturas. Cada titular deve obter sua própria chave pessoal.
