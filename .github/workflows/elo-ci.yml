@@ -1,0 +1,22 @@
+name: Elo checks
+on:
+  push:
+    branches: [elo-financas]
+  pull_request:
+    paths: ['elo-financas/**', '.github/workflows/elo-ci.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: elo-financas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm run check
+      - run: npm test
+      - run: npm run build

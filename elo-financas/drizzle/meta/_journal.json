@@ -1,0 +1,1 @@
+{"version": "7", "dialect": "sqlite", "entries": [{"idx": 0, "version": "6", "when": 1793977200000, "tag": "0000_family", "breakpoints": true}, {"idx": 1, "version": "6", "when": 1793980200000, "tag": "0001_personal", "breakpoints": true}, {"idx": 2, "version": "6", "when": 1793980800000, "tag": "0002_openi", "breakpoints": true}]}
