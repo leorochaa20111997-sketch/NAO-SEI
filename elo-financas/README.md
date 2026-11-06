@@ -7,11 +7,21 @@ Aplicativo em português para uma família com dois titulares. Backend Cloudflar
 - Lançamentos manuais com armazenamento no servidor, edição, exclusão, revisão contra sobrescrita concorrente e valores em centavos.
 - Visão mensal, filtros por pessoa, gráficos, orçamento e exportação CSV com proteção contra fórmulas.
 - Migração opcional dos lançamentos manuais locais da primeira versão, sem duplicar IDs.
-- Acesso de dois titulares por identidade fornecida pelo Sites e lista de e-mails no servidor.
+- Acesso de dois titulares por identidade fornecida pelo Sites e lista de e-mails no servidor. O responsável pode cadastrar o e-mail do segundo titular em Pessoas da família; a mesma conta precisa ser liberada no compartilhamento privado da hospedagem.
 - Integração Pluggy: widget oficial, autorização individual, descoberta dos conectores Open Finance reais de BB, Inter, Mercado Pago e Nubank, importação paginada de contas e transações BRL, reconexão e revogação.
 - Deduplicação por conta/ID do provedor; correções de categoria e exclusões preservadas entre importações.
 - Transferências internas e pagamentos de fatura classificados pelo provedor são excluídos do orçamento. Pendências também são excluídas. Categorias devem ser revisadas: transferências entre o casal não podem ser inferidas com certeza apenas pela descrição.
 - Endpoint de atualização para uma tarefa em nuvem permite importar registros com o app fechado. O acesso exige o token secreto do mesmo Site e a fronteira privada da hospedagem. A tarefa deve ser ativada após configurar e validar o provedor; ela não está ativa nesta publicação.
+
+## Ativação pelo aplicativo
+
+Em **Contas e bancos → Ativar integração do app**, o responsável pode abrir o painel Pluggy para criar/habilitar a conta de produção do aplicativo e cadastrar Client ID/Client Secret no formulário seguro. Isso é uma configuração única da integração: os membros da família não precisam de contas individuais na Pluggy. O app não cria uma assinatura ou contrata um plano automaticamente.
+
+As credenciais só são salvas após autenticação e descoberta de pelo menos um conector Open Finance de produção dos bancos selecionados. A cobertura validada é mostrada ao responsável. Essa verificação não substitui a aprovação comercial do provedor nem a autorização real no banco.
+
+O armazenamento do formulário usa AES-256-GCM, IV aleatório e contexto autenticado. A chave de criptografia fica exclusivamente no segredo de hospedagem `INTEGRATION_ENCRYPTION_KEY`; os valores cifrados ficam no D1. As APIs não devolvem as credenciais. Não é permitido trocar/remover a configuração enquanto houver conexões ativas. Faça backup seguro da chave da hospedagem; rotacioná-la sem recifrar os valores torna a configuração ilegível.
+
+Depois da ativação, **Conectar banco** identifica o titular, explica o consentimento e verifica a cobertura. **Continuar para o banco** abre o widget oficial, restrito a conectores de Open Finance de produção. O login e a decisão de compartilhar ocorrem no ambiente do banco. A conexão é vinculada no servidor à identidade que iniciou o fluxo, e a autorização de um membro não pode ser registrada pelo outro.
 
 ## Configuração para produção
 
@@ -21,8 +31,9 @@ Configure os valores como segredos no Sites, nunca no GitHub ou no cliente:
 |---|---|
 | `OWNER_EMAIL` | Conta ChatGPT do responsável |
 | `PARTNER_EMAIL` | Conta ChatGPT do segundo titular |
-| `PLUGGY_CLIENT_ID` | Credencial da conta Pluggy com produção e cobertura aprovadas |
-| `PLUGGY_CLIENT_SECRET` | Segredo da API Pluggy |
+| `PLUGGY_CLIENT_ID` | Opcional: credencial de produção gerenciada pela hospedagem, como alternativa ao formulário |
+| `PLUGGY_CLIENT_SECRET` | Opcional: segredo da API gerenciado pela hospedagem |
+| `INTEGRATION_ENCRYPTION_KEY` | Chave AES-256 de 32 bytes, em hexadecimal, para a configuração pelo app |
 | `SITE_SERVICE_TOKEN` | Token de serviço existente do mesmo Site; não rotacionar sem atualizar a configuração e os webhooks |
 
 A hospedagem precisa permitir explicitamente o segundo titular. A lista da aplicação e o acesso da hospedagem são controles distintos. Não publique dados bancários em um Site público.
@@ -55,4 +66,4 @@ O build inclui os assets no Worker `dist/server/index.js`, o manifesto e as migr
 
 ## Limites atuais
 
-Acesso do segundo titular e credenciais bancárias dependem da configuração do proprietário. QA visual não foi executada: o ambiente não disponibiliza `cua_repl.js`. Verificação de produção e conexão real devem ser registradas separadamente dos testes com respostas simuladas.
+A integração de produção ainda não está ativada com uma conta real do provedor; somente o fluxo e a configuração estão implementados. O acesso do segundo titular também depende da liberação no compartilhamento privado da hospedagem. Essas dependências não são substituídas pelo consentimento bancário. QA visual não foi executada: o ambiente não disponibiliza `cua_repl.js`. Verificação de produção e conexão real devem ser registradas separadamente dos testes com respostas simuladas.
