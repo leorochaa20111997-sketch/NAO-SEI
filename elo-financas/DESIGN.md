@@ -123,6 +123,9 @@ components:
     padding: "6px 9px"
 ---
 
+> Atualização de escopo: o proprietário solicitou painel público direto, sem login e sem demonstrações. A página de apresentação foi removida. Os tokens de marca abaixo permanecem; referências antigas à página pública ou a exemplos descrevem a versão anterior e não devem orientar novas telas.
+
+
 # Design System: RaiNexa Finanças
 
 ## Overview

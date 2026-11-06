@@ -1,14 +1,16 @@
 # RaiNexa Finanças
 
-Aplicativo privado em português com Worker Cloudflare, D1, controle por titular e integração Openi Connect, com Meu Pluggy pessoal como alternativa. O código não contém credenciais nem dados financeiros reais.
+Aplicativo público em português com Worker Cloudflare, D1, controle por titular e integração Openi Connect, com Meu Pluggy pessoal como alternativa. O código não contém credenciais nem dados financeiros reais.
 
-## Página pública e painel protegido
+## Acesso público direto
 
-A raiz `/` é uma página pública RaiNexa com demonstração fictícia e guia de uso. `/app` contém o painel familiar; `/bancos` recebe o retorno da integração. A autenticação segue o ChatGPT Sites. As APIs verificam a conta autorizada no servidor mesmo quando a hospedagem está pública, e o atualizador exige um segredo de serviço separado. O cadastro do segundo titular em Pessoas da família passa a bastar na aplicação, sem convite adicional na hospedagem pública.
+A raiz `/` abre o painel operacional, assim como `/app`. Não há página de apresentação, demonstração, valores fictícios ou tela de login. Qualquer visitante pode consultar, criar, editar e excluir lançamentos, ajustar orçamentos e exportar os dados compartilhados. Essa abertura foi solicitada explicitamente pelo proprietário.
 
-A identidade usa a logo N fornecida pelo usuário, extraída com transparência via image_gen, Sora e Inter hospedadas no próprio Worker, e cores grafite, azul, roxo e turquesa. As fontes são distribuídas com suas licenças em `assets/licenses/`. Os ícones são SVGs de traço consistente, com geometria baseada em ícones Lucide (ISC). A demo não consulta o banco e todos os valores são identificados como fictícios.
+O navegador recebe automaticamente um cookie assinado, Secure, HttpOnly e SameSite=Lax, válido por um ano, para separar o gerenciamento de conexões bancárias. Em Preferências é possível escolher Você ou Esposa antes de conectar bancos. Cada titular usa o próprio navegador; apagar os cookies perde o acesso de gerenciamento às conexões daquele navegador. Os movimentos e saldos importados são públicos, mas as chaves permanecem cifradas e não são devolvidas pelas APIs. Tentativas de consentimento são vinculadas ao navegador e têm consumo único. Identidades Sites já reconhecidas conservam seus vínculos bancários anteriores, sem impor login a outros visitantes.
 
-Foram usadas as skills oficiais Impeccable (`pbakaus/impeccable`) e Humanizer (`blader/humanizer`) para composição, legibilidade e revisão do texto. A revisão de fonte identificou quatro ajustes de acessibilidade/comportamento, todos resolvidos. Não há aprovação visual renderizada: o ambiente não tem `cua_repl.js`, e a política Sites impede substituir essa infraestrutura por outro navegador.
+As escritas exigem origem igual à do Site e o cabeçalho de aplicação. Configurações globais existentes e o atualizador interno mantêm suas permissões próprias; o atualizador exige um segredo de serviço separado. Nenhum registro existente é removido pela mudança de acesso.
+
+A identidade usa a logo N fornecida pelo usuário, extraída com transparência via image_gen, Sora e Inter hospedadas no próprio Worker, e cores grafite, azul, roxo e turquesa. Licenças em `assets/licenses/`. A revisão visual em navegador não está disponível neste ambiente; não há aprovação visual renderizada.
 
 ## Conexão iniciada pelo RaiNexa: Openi
 
@@ -38,15 +40,15 @@ O caminho alternativo **Meu Pluggy pessoal** é documentado pelo próprio proved
 
 Segundo a documentação consultada em 06/11/2026, esse modo é gratuito para leitura dos próprios dados, sem assinatura comercial, limitado a cinco conexões e sem finalidade comercial. Não se confunde com o teste de 15 dias da API empresarial. A disponibilidade dos bancos e produtos deve ser confirmada na conta Meu Pluggy; ela não é garantida pelo código do RaiNexa.
 
-Cada membro da família utiliza suas próprias contas e credenciais do provedor. O compartilhamento do painel entre o casal atende ao pedido de um espaço familiar privado; não use a integração pessoal para oferecer um serviço a terceiros.
+Cada membro da família utiliza suas próprias contas e credenciais do provedor. O proprietário solicitou acesso público ao painel. As integrações pessoais continuam destinadas aos dados do próprio titular, conforme as regras do provedor.
 
 ## Configuração inicial do modo alternativo Meu Pluggy pelo app
 
-1. Entre com seu próprio perfil ChatGPT autorizado e abra **Contas e bancos → Conectar gratuitamente**.
+1. Abra **Preferências**, escolha seu perfil neste navegador e siga para **Bancos → Conectar gratuitamente**.
 2. Use o link para criar sua conta gratuita no Meu Pluggy e autorize seus próprios bancos por lá.
 3. No Dashboard Pluggy, com a mesma conta, escolha **Aplicações → Demo → Conectar Conta → MeuPluggy**. Escolher o conector direto do banco pertence a outro fluxo e pode exigir plano comercial.
 4. Copie o itemId de cada banco e Client ID/Client Secret da aplicação pessoal para o formulário seguro do RaiNexa. Os itens não podem ser enumerados por `GET /v2/items` nesse plano, por isso o cadastro inicial do itemId é necessário.
-5. O outro titular repete o processo com a própria conta e credenciais. O cadastro da pessoa fica em Preferências → Pessoas da família. O mesmo e-mail precisa estar cadastrado na lista da família na aplicação.
+5. O outro titular repete o processo no próprio navegador, com suas próprias credenciais. Nenhum cadastro de e-mail ou login é necessário para usar o painel.
 
 O nome do conector proxy é MeuPluggy; o banco do item é um rótulo escolhido pelo titular no formulário, não uma inferência confirmada pelo provedor.
 

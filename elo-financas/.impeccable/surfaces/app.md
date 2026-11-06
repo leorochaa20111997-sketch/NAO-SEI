@@ -1,3 +1,3 @@
-# Painel familiar
-Mode: Operate
-Brief: preservar controles existentes, facilitar leitura de valores e navegação entre visão geral, lançamentos, bancos, orçamento e guia. Aplicar identidade RaiNexa com precisão e contraste. A página pública não autentica nem autoriza visitantes a consultar o D1. Exibir entrada quando a identidade estiver ausente e acesso restrito quando não fizer parte da família.
+# Painel RaiNexa Finanças
+
+Brief atualizado: o usuário removeu a exigência de login e pediu acesso totalmente público, sem demonstrações. A raiz e `/app` abrem o painel operacional real. Todos podem consultar e alterar lançamentos e orçamentos. Preservar as cores, a logo transparente, a tipografia e o histórico. Preferências está disponível também no cabeçalho móvel. Credenciais bancárias cifradas, com gerenciamento separado por navegador e confirmação individual no banco.
