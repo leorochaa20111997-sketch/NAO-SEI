@@ -1,0 +1,1 @@
+ALTER TABLE connections ADD COLUMN mode TEXT NOT NULL DEFAULT 'direct';

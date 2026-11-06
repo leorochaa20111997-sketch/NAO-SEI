@@ -1,50 +1,68 @@
 # Elo — Finanças da família
 
-Aplicativo em português para uma família com dois titulares. Backend Cloudflare Worker, banco D1 e acesso privado pelo ChatGPT Sites. O código não contém credenciais nem dados financeiros pessoais.
+Aplicativo privado em português com Worker Cloudflare, D1, controle por titular e integração pessoal gratuita Meu Pluggy. O código não contém credenciais nem dados financeiros reais.
 
-## Recursos implementados
+## Integração gratuita escolhida
 
-- Lançamentos manuais com armazenamento no servidor, edição, exclusão, revisão contra sobrescrita concorrente e valores em centavos.
-- Visão mensal, filtros por pessoa, gráficos, orçamento e exportação CSV com proteção contra fórmulas.
-- Migração opcional dos lançamentos manuais locais da primeira versão, sem duplicar IDs.
-- Acesso de dois titulares por identidade fornecida pelo Sites e lista de e-mails no servidor. O responsável pode cadastrar o e-mail do segundo titular em Pessoas da família; a mesma conta precisa ser liberada no compartilhamento privado da hospedagem.
-- Integração Pluggy: widget oficial, autorização individual, descoberta dos conectores Open Finance reais de BB, Inter, Mercado Pago e Nubank, importação paginada de contas e transações BRL, reconexão e revogação.
-- Deduplicação por conta/ID do provedor; correções de categoria e exclusões preservadas entre importações.
-- Transferências internas e pagamentos de fatura classificados pelo provedor são excluídos do orçamento. Pendências também são excluídas. Categorias devem ser revisadas: transferências entre o casal não podem ser inferidas com certeza apenas pela descrição.
-- Endpoint de atualização para uma tarefa em nuvem permite importar registros com o app fechado. O acesso exige o token secreto do mesmo Site e a fronteira privada da hospedagem. A tarefa deve ser ativada após configurar e validar o provedor; ela não está ativa nesta publicação.
+O caminho principal do app é **Meu Pluggy pessoal**, documentado pelo próprio provedor:
 
-## Ativação pelo aplicativo
+- https://meu.pluggy.ai/api-guide
+- https://docs.pluggy.ai/pt/docs/guides/meu-pluggy-personal-use
+- https://docs.pluggy.ai/en/docs/connections/item
 
-Em **Contas e bancos → Ativar integração do app**, o responsável pode abrir o painel Pluggy para criar/habilitar a conta de produção do aplicativo e cadastrar Client ID/Client Secret no formulário seguro. Isso é uma configuração única da integração: os membros da família não precisam de contas individuais na Pluggy. O app não cria uma assinatura ou contrata um plano automaticamente.
+Segundo a documentação consultada em 06/11/2026, esse modo é gratuito para leitura dos próprios dados, sem assinatura comercial, limitado a cinco conexões e sem finalidade comercial. Não se confunde com o teste de 15 dias da API empresarial. A disponibilidade dos bancos e produtos deve ser confirmada na conta Meu Pluggy; ela não é garantida pelo código do Elo.
 
-As credenciais só são salvas após autenticação e descoberta de pelo menos um conector Open Finance de produção dos bancos selecionados. A cobertura validada é mostrada ao responsável. Essa verificação não substitui a aprovação comercial do provedor nem a autorização real no banco.
+Cada membro da família utiliza suas próprias contas e credenciais do provedor. O compartilhamento do painel entre o casal atende ao pedido de um espaço familiar privado; não use a integração pessoal para oferecer um serviço a terceiros.
 
-O armazenamento do formulário usa AES-256-GCM, IV aleatório e contexto autenticado. A chave de criptografia fica exclusivamente no segredo de hospedagem `INTEGRATION_ENCRYPTION_KEY`; os valores cifrados ficam no D1. As APIs não devolvem as credenciais. Não é permitido trocar/remover a configuração enquanto houver conexões ativas. Faça backup seguro da chave da hospedagem; rotacioná-la sem recifrar os valores torna a configuração ilegível.
+## Configuração inicial pelo app
 
-Depois da ativação, **Conectar banco** identifica o titular, explica o consentimento e verifica a cobertura. **Continuar para o banco** abre o widget oficial, restrito a conectores de Open Finance de produção. O login e a decisão de compartilhar ocorrem no ambiente do banco. A conexão é vinculada no servidor à identidade que iniciou o fluxo, e a autorização de um membro não pode ser registrada pelo outro.
+1. Entre com seu próprio perfil ChatGPT autorizado e abra **Contas e bancos → Conectar gratuitamente**.
+2. Use o link para criar sua conta gratuita no Meu Pluggy e autorize seus próprios bancos por lá.
+3. No Dashboard Pluggy, com a mesma conta, escolha **Aplicações → Demo → Conectar Conta → MeuPluggy**. Escolher o conector direto do banco pertence a outro fluxo e pode exigir plano comercial.
+4. Copie o itemId de cada banco e Client ID/Client Secret da aplicação pessoal para o formulário seguro do Elo. Os itens não podem ser enumerados por `GET /v2/items` nesse plano, por isso o cadastro inicial do itemId é necessário.
+5. O outro titular repete o processo com a própria conta e credenciais. O cadastro da pessoa fica em Preferências → Pessoas da família. O mesmo e-mail precisa estar permitido no compartilhamento privado do site.
 
-## Configuração para produção
+O nome do conector proxy é MeuPluggy; o banco do item é um rótulo escolhido pelo titular no formulário, não uma inferência confirmada pelo provedor.
 
-Configure os valores como segredos no Sites, nunca no GitHub ou no cliente:
+As chaves são cifradas com AES-256-GCM e contexto vinculado à identidade do titular. A chave de criptografia fica no segredo de hospedagem `INTEGRATION_ENCRYPTION_KEY`, nunca no GitHub ou no cliente. As APIs não devolvem chaves. O outro membro não pode usar as mesmas credenciais da aplicação pessoal nem gerenciar conexões alheias.
 
-| Variável | Uso |
+## Atualização automática
+
+O Meu Pluggy atualiza as conexões de origem a cada 24 horas, de acordo com sua documentação. Os itens proxy refletem os dados da origem e não aceitam atualização manual via PATCH. O Elo lê os dados disponíveis, sem forçar uma nova coleta no banco.
+
+O endpoint privado `POST /api/internal/sync` foi preparado para a tarefa diária vinculada ao Site. A tarefa obtém o token de serviço existente com `get_site` e o envia **somente a este mesmo Site** nos cabeçalhos `OAI-Sites-Authorization: Bearer <token>` e `X-Elo-Service: <token>`. Nunca coloque credenciais no texto da tarefa ou no repositório. O servidor seleciona as credenciais do titular de cada conexão, sem exigir uma API comercial global.
+
+Sem conexões autorizadas, o endpoint responde `skipped: no_connections` e não inventa registros. Paginação parcial mantém o cursor para retomar. Falha ou autorização expirada de uma pessoa não impede a importação das demais; o retorno parcial lista as falhas por banco. Importar não significa atualizar instantaneamente a origem.
+
+Após renovação de uma autorização Meu Pluggy, confirme o novo itemId no Dashboard. Segundo o provedor, a autorização de acesso da aplicação tem validade própria e pode expirar mesmo se o consentimento bancário ainda estiver ativo. O Elo verifica a expiração e preserva o histórico; não interpreta leituras vazias após expiração como saldo zerado.
+
+## Recursos financeiros
+
+- Lançamentos manuais e importados com persistência no servidor e valores em centavos.
+- Edição, exclusão e controle de revisão para evitar sobrescritas concorrentes.
+- Orçamento, visão mensal, filtro por pessoa, gráficos e CSV protegido contra fórmulas.
+- Migração idempotente dos registros manuais da primeira versão.
+- Importação paginada por conta/ID, sem duplicar registros, preservando categorias ajustadas e exclusões.
+- Transferências internas e pagamentos de fatura identificados pelo provedor ficam fora do orçamento; transações pendentes também. Revise as categorias e transferências entre o casal para evitar dupla contagem.
+- Reconexão guiada, revogação e exclusão dos dados de uma conexão.
+
+## Hospedagem e configuração
+
+O manifesto `.openai/hosting.json` preserva o projeto e o binding D1 `DB`. Migrações aplicadas são imutáveis; novas alterações usam novas migrações. O build produz `dist/server/index.js` com assets embutidos. O artefato de publicação inclui `.openai/`, `dist/` e `drizzle/` na raiz.
+
+Segredos da hospedagem:
+
+| Chave | Uso |
 |---|---|
-| `OWNER_EMAIL` | Conta ChatGPT do responsável |
-| `PARTNER_EMAIL` | Conta ChatGPT do segundo titular |
-| `PLUGGY_CLIENT_ID` | Opcional: credencial de produção gerenciada pela hospedagem, como alternativa ao formulário |
-| `PLUGGY_CLIENT_SECRET` | Opcional: segredo da API gerenciado pela hospedagem |
-| `INTEGRATION_ENCRYPTION_KEY` | Chave AES-256 de 32 bytes, em hexadecimal, para a configuração pelo app |
-| `SITE_SERVICE_TOKEN` | Token de serviço existente do mesmo Site; não rotacionar sem atualizar a configuração e os webhooks |
+| `OWNER_EMAIL` | Conta do responsável pela família |
+| `PARTNER_EMAIL` | Opcional: segundo titular, em alternativa ao cadastro pelo app |
+| `INTEGRATION_ENCRYPTION_KEY` | Chave AES de 32 bytes em hexadecimal; preserve-a para ler as configurações cifradas |
+| `SITE_SERVICE_TOKEN` | Acesso de serviço do mesmo Site, somente para rotinas internas |
+| `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET` | Opcionais: compatibilidade com a integração comercial anterior; dispensáveis para o modo pessoal |
 
-A hospedagem precisa permitir explicitamente o segundo titular. A lista da aplicação e o acesso da hospedagem são controles distintos. Não publique dados bancários em um Site público.
+## Verificação
 
-Após configurar as credenciais e publicar, cada titular entra com a própria conta e conecta suas próprias contas pelo widget oficial. O aplicativo não recebe senhas bancárias. Valide o endpoint de atualização usando acesso de serviço e só então vincule uma tarefa Sites ao projeto. A tarefa precisa obter o token existente com get_site e enviá-lo exclusivamente ao mesmo Site nos cabeçalhos OAI-Sites-Authorization (Bearer) e X-Elo-Service. Nunca grave o token nas instruções da tarefa nem no GitHub. A tarefa consulta POST /api/internal/sync até completar ou relatar falha; não é necessário republicar o aplicativo a cada importação.
-
-Não considere a importação real ativada antes de validar uma conexão autorizada em produção. Plano, preço, cobertura, limite histórico e frequência de atualização são definidos pelo provedor e banco. Não há promessa de instantaneidade. Movimentos em moeda estrangeira são ignorados nesta versão.
-
-## Desenvolvimento e validação
-
-Requer Node 24. Não há dependências de build.
+Requer Node 24, sem dependências de build:
 
 ```sh
 npm run check
@@ -52,18 +70,6 @@ npm test
 npm run build
 ```
 
-Os testes executam as rotas reais contra SQLite e simulam as respostas do provedor: autenticação, isolamento, CSRF, centavos, revisões, orçamento, migração, paginação, duplicidade, preservação de correções, falhas e atualização sem navegador. Eles não substituem homologação com o provedor e consentimento reais.
+Os testes executam o backend com SQLite e respostas simuladas da API. Incluem autenticação, CSRF, centavos, revisões, dois titulares, cifragem e sigilo das credenciais, proxies pessoais, limites, expiração, paginação e atualização automática sem API comercial.
 
-O build inclui os assets no Worker `dist/server/index.js`, o manifesto e as migrações D1. Hospede pelo workflow Sites, preservando o ID em `.openai/hosting.json`. A publicação aplica migrações antes de disponibilizar o Worker. Nunca altere migrações já aplicadas; acrescente novas migrações.
-
-## Operações
-
-- `GET /api/internal/health`: verifica o banco, protegido pelo token de serviço do próprio Site e cabeçalho `X-Elo-Service`.
-- `POST /api/internal/sync`: importa conexões existentes, com a mesma autorização de serviço. Retorna 503 quando o provedor não está configurado ou a paginação precisa continuar; não registra sucesso falso.
-- A atualização mantém o cursor de páginas parciais no banco para continuar em outra tentativa. A sincronização importa registros disponíveis no provedor; disponibilidade e atualização no banco são distintas. Não há webhook público que exponha a fronteira privada do Site.
-- Erros e última atualização são exibidos em cada conexão. A data de importação do app é distinta da atualização do banco.
-- Desconectar revoga o item no provedor e remove contas e lançamentos daquela conexão. Exporte antes, se necessário.
-
-## Limites atuais
-
-A integração de produção ainda não está ativada com uma conta real do provedor; somente o fluxo e a configuração estão implementados. O acesso do segundo titular também depende da liberação no compartilhamento privado da hospedagem. Essas dependências não são substituídas pelo consentimento bancário. QA visual não foi executada: o ambiente não disponibiliza `cua_repl.js`. Verificação de produção e conexão real devem ser registradas separadamente dos testes com respostas simuladas.
+Verificação real com bancos continua dependendo do cadastro e consentimento dos titulares. QA visual indisponível neste ambiente, que não contém `cua_repl.js`. Nenhum plano pago foi contratado e nenhuma conta financeira foi criada em nome do usuário.
