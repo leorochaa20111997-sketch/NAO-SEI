@@ -1,10 +1,28 @@
 # Elo — Finanças da família
 
-Aplicativo privado em português com Worker Cloudflare, D1, controle por titular e integração pessoal gratuita Meu Pluggy. O código não contém credenciais nem dados financeiros reais.
+Aplicativo privado em português com Worker Cloudflare, D1, controle por titular e integração Openi Connect, com Meu Pluggy pessoal como alternativa. O código não contém credenciais nem dados financeiros reais.
 
-## Integração gratuita escolhida
+## Conexão iniciada pelo Elo: Openi
 
-O caminho principal do app é **Meu Pluggy pessoal**, documentado pelo próprio provedor:
+A integração padrão agora usa o Connect hospedado da Openi. A página oficial de preços anuncia um plano pessoal de R$ 0/mês, cinco consentimentos do mesmo titular e uma atualização diária. Não confundir esse plano com o teste de 14 dias dos planos comerciais. A habilitação, o faturamento e a cobertura da conta são controlados pelo provedor; o Elo não consegue confirmar o plano pela API documentada e não contrata assinaturas. Cada titular deve obter sua própria chave pessoal.
+
+Fontes verificadas em 06/11/2026:
+
+- https://openi4devs.com.br/precos
+- https://developer.openi.com.br/docs/openfinance/connect/overview
+- https://developer.openi.com.br/docs/openfinance/connect/create-connect-session
+
+No Elo, abra Contas e bancos e configure uma vez sua chave e a URL de produção fornecida pela Openi. A documentação pública usa uma URL base parametrizada; nenhum endereço de API foi inventado ou presumido. O formulário aceita apenas HTTPS em subdomínios oficiais openi.com.br, sem portas, usuário/senha, consultas ou caminhos arbitrários. As requisições não seguem redirecionamentos com a chave.
+
+Depois, Conectar banco cria uma sessão temporária no servidor e envia o usuário ao Connect oficial. O retorno para /bancos inclui uma tentativa aleatória vinculada ao titular, com validade de 30 minutos e consumo único. O backend trata os parâmetros de retorno como dados não confiáveis: consulta o item com a chave do titular e confirma o banco pelo conector retornado pela API. Não exige copiar itemId manualmente. O widget permite escolher a instituição; o Elo importa os bancos pessoais BB, Inter, Mercado Pago e Nubank quando disponibilizados para a chave.
+
+O adaptador importa contas e transações bancárias BRL, normaliza valores e pagina até concluir, usa identificadores separados por provedor e participa da tarefa diária já vinculada ao Site. A integração de cartões e investimentos da Openi não está implementada nesta versão. O modo Meu Pluggy anterior continua disponível para as conexões existentes e como alternativa.
+
+Configuração e autorização de produção ainda dependem das chaves e consentimentos dos titulares. Os testes usam respostas simuladas baseadas na documentação, sem provar acesso de produção. QA visual continua indisponível no ambiente.
+
+## Alternativa pessoal gratuita: Meu Pluggy
+
+O caminho alternativo **Meu Pluggy pessoal** é documentado pelo próprio provedor:
 
 - https://meu.pluggy.ai/api-guide
 - https://docs.pluggy.ai/pt/docs/guides/meu-pluggy-personal-use
@@ -14,7 +32,7 @@ Segundo a documentação consultada em 06/11/2026, esse modo é gratuito para le
 
 Cada membro da família utiliza suas próprias contas e credenciais do provedor. O compartilhamento do painel entre o casal atende ao pedido de um espaço familiar privado; não use a integração pessoal para oferecer um serviço a terceiros.
 
-## Configuração inicial pelo app
+## Configuração inicial do modo alternativo Meu Pluggy pelo app
 
 1. Entre com seu próprio perfil ChatGPT autorizado e abra **Contas e bancos → Conectar gratuitamente**.
 2. Use o link para criar sua conta gratuita no Meu Pluggy e autorize seus próprios bancos por lá.
@@ -30,7 +48,7 @@ As chaves são cifradas com AES-256-GCM e contexto vinculado à identidade do ti
 
 O Meu Pluggy atualiza as conexões de origem a cada 24 horas, de acordo com sua documentação. Os itens proxy refletem os dados da origem e não aceitam atualização manual via PATCH. O Elo lê os dados disponíveis, sem forçar uma nova coleta no banco.
 
-O endpoint privado `POST /api/internal/sync` foi preparado para a tarefa diária vinculada ao Site. A tarefa obtém o token de serviço existente com `get_site` e o envia **somente a este mesmo Site** nos cabeçalhos `OAI-Sites-Authorization: Bearer <token>` e `X-Elo-Service: <token>`. Nunca coloque credenciais no texto da tarefa ou no repositório. O servidor seleciona as credenciais do titular de cada conexão, sem exigir uma API comercial global.
+O endpoint privado `POST /api/internal/sync` foi preparado para a tarefa diária vinculada ao Site. A tarefa obtém o token de serviço existente com `get_site` e o envia **somente a este mesmo Site** nos cabeçalhos `OAI-Sites-Authorization: Bearer <token>` e `X-Elo-Service: <token>`. Nunca coloque credenciais no texto da tarefa ou no repositório. O servidor seleciona as credenciais do titular e o adaptador (Openi ou Meu Pluggy) de cada conexão, sem exigir uma API comercial global.
 
 Sem conexões autorizadas, o endpoint responde `skipped: no_connections` e não inventa registros. Paginação parcial mantém o cursor para retomar. Falha ou autorização expirada de uma pessoa não impede a importação das demais; o retorno parcial lista as falhas por banco. Importar não significa atualizar instantaneamente a origem.
 
